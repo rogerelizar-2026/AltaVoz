@@ -15,12 +15,14 @@ interface PasswordModalProps {
 export function PasswordModal({ open, onAuthenticated, onExit }: PasswordModalProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showExitMessage, setShowExitMessage] = useState(false);
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (!open) {
       setPassword("");
       setError(null);
+      setShowExitMessage(false);
     }
   }, [open]);
 
@@ -39,11 +41,42 @@ export function PasswordModal({ open, onAuthenticated, onExit }: PasswordModalPr
   };
 
   const handleExitClick = () => {
-    // Abre modal de confirmação de saída
-    onExit();
+    // Mostra mensagem de saída e redireciona após 4 segundos
+    setShowExitMessage(true);
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 4000);
   };
 
   const isEnterEnabled = password === CORRECT_PASSWORD;
+
+  // Se deve mostrar mensagem de saída
+  if (showExitMessage) {
+    return (
+      <Modal
+        open={open}
+        onClose={() => {}}
+        title="Saída do Sistema"
+        icon={<IcLogout size={24} className="text-warn-400" />}
+        width="max-w-md"
+      >
+        <div className="space-y-4 text-center">
+          <p className="text-mist-300 text-lg">
+            Olá! Você pode solicitar o acesso no email{" "}
+            <a 
+              href={`mailto:${CONTACT_EMAIL}`} 
+              className="underline hover:text-brand-300 transition-colors font-semibold"
+            >
+              {CONTACT_EMAIL}
+            </a>
+          </p>
+          <p className="text-sm text-ink-500">
+            Redirecionando para a página inicial...
+          </p>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
