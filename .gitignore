@@ -1,5 +1,7 @@
-(index.html is a source file, so no ignores needed)
+```
+# Dependencies
+node_modules/
 
-```text
-
+# Vite/Vitest cache
+node_modules/.vite/
 ```
