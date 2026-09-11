@@ -1,77 +1,10 @@
 ```
-# Build artifacts
-dist/
-build/
-*.js
-*.css
-
 # Dependencies
 node_modules/
 
 # Build artifacts
 dist/
 
-# Temporary/Vite files
-node_modules/.vite/
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
-.env
-.env.local
-.env.*
-
-# Editors
-.vscode/
-.idea/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Compiled
-*.o
-*.obj
-*.so
-*.a
-*.dll
-*.exe
-*.out
-
-# Testing
-coverage/
-htmlcov/
-.coverage
-.nyc_output/
-.mypy_cache/
-.pytest_cache/
-.jest_coverage/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Compressed
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
+# IDE
+.vite/
 ```

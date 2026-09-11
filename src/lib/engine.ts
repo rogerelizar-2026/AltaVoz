@@ -94,13 +94,19 @@ export async function runProcessing(
   const started = Date.now();
   const duration = file.durationSec ?? 60;
   let accWeight = 0;
+  
+  // Cache de referências para evitar lookup repetido
+  const stages = STAGES;
+  const numStages = stages.length;
 
-  for (let s = 0; s < STAGES.length; s++) {
-    const stage = STAGES[s];
+  for (let s = 0; s < numStages; s++) {
+    const stage = stages[s];
     const stageMs = stage.ms(duration);
     const chunks = Math.max(1, Math.round(stageMs / 240));
+    const chunkMs = stageMs / chunks;
+    
     for (let c = 1; c <= chunks; c++) {
-      await tick(stageMs / chunks, isAborted);
+      await tick(chunkMs, isAborted);
       const frac = c / chunks;
       const overall = accWeight + stage.weight * frac;
       onProgress({ overall: clamp(overall, 0, 1), stageIdx: s, filePosSec: overall * duration });
