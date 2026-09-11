@@ -1,0 +1,499 @@
+# AltaVoz - High-Fidelity Local Audio Transcription & Analysis System
+
+## PROJECT OVERVIEW
+Build a 100% client-side web application for audio transcription and speaker diarization that runs entirely in the user's browser without sending any data to external servers. The system must prioritize accuracy, reproducibility, and data integrity while maintaining usability for non-technical users.
+
+## CORE REQUIREMENTS
+
+### 1. OFFLINE-FIRST ARCHITECTURE
+- Function completely offline after initial dependency installation
+- Zero data transmission to external servers (no APIs, no cloud processing)
+- All ML models must run locally via WebAssembly/WebGPU
+- Reproducible outputs: identical inputs must generate identical outputs
+
+### 2. AUDIO PROCESSING CONSTRAINTS
+- Supported formats: MP3, M4A (AAC), WAV (fallback)
+- Maximum duration: 30 minutes per file
+- Maximum files per session: 2
+- Minimum sample rate: 16kHz (auto-resample if lower)
+- Maximum file size: 400 MB
+- Block corrupted files, excessive silence (>40%), or severe clipping
+
+### 3. SPEAKER DIARIZATION PIPELINE
+Implement a robust 3-stage diarization system:
+- **Stage 1 - Voice Activity Detection (VAD):** Use Silero VAD (WASM) to detect speech segments, filter noise, music, laughter, and coughing
+- **Stage 2 - Speaker Embedding Extraction:** Extract d-vectors or x-vectors using pyannote.audio models converted to ONNX/WASM
+- **Stage 3 - Clustering & Assignment:** Apply spectral clustering with cosine similarity, then match against user-provided voice samples
+
+### 4. TRANSCRIPTION ENGINE
+- Primary model: Whisper.cpp (quantized q4_0 or q5_0 for CPU efficiency)
+- Fallback model: TinyWhisper for low-RAM systems (<8GB)
+- Language detection: Auto-detect with confidence score display
+- Timestamp precision: ±200ms accuracy required
+- Handle overlapping speech with explicit markers [OVERLAP]
+
+## MANDATORY 5-STEP WORKFLOW
+
+### STEP 1 - AUDIO IMPORT & VALIDATION
+**Actions:**
+- Drag-and-drop or file picker interface
+- Validate format, duration, sample rate, codec, and channels using ff.wasm or similar
+- Calculate SHA-256 hash immediately upon load (display as "fingerprint")
+- Perform audio quality analysis:
+  * RMS levels (target: -20dB to -10dB)
+  * Peak detection (warn if > -1dBFS indicating clipping)
+  * SNR estimation (warn if < 15dB)
+  * Silence ratio calculation
+- Reject files with:
+  * Duration > 30:00
+  * Sample rate < 8kHz (non-rescuable)
+  * Severe corruption or unreadable headers
+  * SNR < 10dB (suggest re-recording)
+
+**UI Elements:**
+- Visual waveform with color-coded quality zones (green=good, yellow=warn, red=reject)
+- Hash display with copy button
+- Quality metrics panel
+- Clear rejection messages with actionable advice
+
+### STEP 2 - VOICE SAMPLE REGISTRATION
+**Requirements:**
+- Minimum 2 participants, maximum 6
+- Sample duration: 10-30 seconds (strict enforcement)
+- Two capture methods:
+  * Microphone recording (with real-time level monitoring)
+  * File upload (same validation as main audio)
+- Quality validation:
+  * Volume check (RMS > -30dB)
+  * No clipping detection
+  * Speech presence confirmation (VAD score > 0.8)
+- Store as Blob URLs in memory only (never persist to disk unencrypted)
+
+**UI Elements:**
+- Participant name input with avatar placeholder
+- Recording timer with visual feedback
+- Playback controls for review
+- Quality indicator (★☆☆ to ★★★)
+- Minimum participant warning if < 2 samples
+
+### STEP 3 - VERIFICATION & CALIBRATION
+**Automated Analysis:**
+- Process first 30 seconds of main audio
+- Extract embeddings from detected speech segments
+- Compare against registered voice samples using cosine similarity
+- Calculate confidence scores (0-100%) per segment
+
+**Confidence Classification:**
+- HIGH: ≥80% (green badge)
+- MEDIUM: 50-79% (yellow badge)  
+- LOW: <50% (red badge, requires manual review)
+
+**User Actions:**
+- Display match results with confidence percentages
+- Require explicit confirmation: "Proceed with these speaker assignments?"
+- Allow rejection → return to Step 2 to re-record samples
+- Show estimated accuracy based on sample quality
+
+**Technical Implementation:**
+```typescript
+interface VerificationResult {
+  segmentId: string;
+  startTime: number;
+  endTime: number;
+  matchedSpeaker: string | null;
+  confidence: number; // 0-100
+  classification: 'HIGH' | 'MEDIUM' | 'LOW';
+  embeddingDistance: number; // cosine distance
+}
+```
+
+### STEP 4 - PROCESSING EXECUTION
+**Pipeline:**
+1. Pre-process audio: normalize levels, apply high-pass filter (80Hz)
+2. Run VAD to identify speech regions
+3. Execute Whisper transcription with word-level timestamps
+4. Extract speaker embeddings for each speech segment
+5. Cluster segments and assign to registered speakers
+6. Post-process: merge short segments (<1s), handle overlaps
+
+**Progress Tracking:**
+- Real-time progress bar with stage indicators
+- Estimated time remaining (based on audio length and hardware benchmark)
+- CPU/Memory usage monitor (warn if >85% RAM usage)
+- Pause/Resume capability (save state to IndexedDB)
+
+**Hardware Adaptation:**
+- Run initial benchmark (10s sample) to determine optimal model size
+- Auto-select quantization level based on available RAM:
+  * <4GB: TinyWhisper q4_0
+  * 4-8GB: Small Whisper q4_0
+  * >8GB: Medium Whisper q5_0
+- Detect WebGPU availability for acceleration
+
+**Error Handling:**
+- Timeout after 2x expected duration (prevent infinite hangs)
+- Graceful degradation: switch to smaller model if OOM
+- Save partial results every 2 minutes to IndexedDB
+
+### STEP 5 - FINAL REPORT GENERATION
+**Report Structure:**
+```
+[HH:MM:SS] [Speaker Name]: "Transcribed text here."
+[HH:MM:SS] [Speaker Name]: "Another segment with [OVERLAP] marker if needed."
+```
+
+**Features:**
+- Editable transcript (contenteditable div with change tracking)
+- Click-to-play audio from any timestamp
+- Highlight low-confidence segments in yellow
+- Show confidence score on hover per segment
+
+**Export Options:**
+1. **Full Report (PDF):** Formatted with headers, timestamps, integrity seals
+2. **Plain Text (TXT):** Simple format for further processing
+3. **JSON Data:** Structured data with metadata for developers
+4. **Clipboard Copy:** One-click copy of entire transcript
+5. **Integrity Log:** Separate .txt file with all hashes and timestamps
+
+**Integrity Seals (mandatory footer):**
+```
+=== INTEGRITY SEAL ===
+Audio SHA-256: [hash]
+Transcript SHA-256: [hash]
+Processing Timestamp: [ISO 8601 UTC]
+Model Versions: whisper.cpp v1.2.0, pyannote v3.1.0
+System Fingerprint: [browser + OS + CPU cores]
+User Confirmations: [Step 3: timestamp, Step 5: timestamp]
+========================
+```
+
+## ADDITIONAL MANDATORY FEATURES
+
+### 1. INTEGRITY LOG (CHAIN OF CUSTODY)
+**Log Events:**
+- `AUDIO_IMPORT`: filename, hash, duration, quality metrics
+- `SAMPLE_REGISTERED`: participant name, duration, quality score
+- `VERIFICATION_COMPLETED`: confidence distribution, user decision
+- `PROCESSING_STARTED`: model selected, hardware profile
+- `PROCESSING_PROGRESS`: every 10% milestone
+- `REPORT_GENERATED`: export type, hash
+- `DATA_EXPORTED`: method, timestamp
+
+**Implementation:**
+```typescript
+interface LogEntry {
+  id: string; // UUID v4
+  timestamp: string; // ISO 8601
+  eventType: string;
+  details: Record<string, any>;
+  previousHash: string; // SHA-256 of previous entry (blockchain-style)
+  currentHash: string; // SHA-256 of this entry
+}
+```
+
+**Features:**
+- Append-only log (cryptographically linked)
+- Export as signed .txt file
+- Visual timeline view
+- Verify integrity button (recompute all hashes)
+
+### 2. TECHNICAL GLOSSARY (CONTEXTUAL HELP)
+**Terms to Define:**
+- Transcription, Diarization, Speaker Embedding
+- SHA-256 Hash, Chain of Custody
+- VAD (Voice Activity Detection)
+- RMS, SNR, Clipping, Sample Rate
+- WASM, WebGPU, Quantization
+- Confidence Score, WER (Word Error Rate), DER (Diarization Error Rate)
+
+**UI Implementation:**
+- Tooltip on hover for technical terms
+- Dedicated modal accessible from sidebar
+- Searchable glossary with examples
+- "Explain Like I'm 15" toggle for simplified definitions
+
+### 3. STATE PERSISTENCE & RECOVERY
+**Storage Strategy:**
+- localStorage: UI preferences, glossary settings, recent reports list
+- IndexedDB: Large binary data (audio blobs, partial transcripts, logs)
+- SessionStorage: Temporary processing state
+
+**Recovery Features:**
+- Auto-save every 60 seconds (debounced)
+- Detect incomplete sessions on reload
+- Offer restoration: "We found an unfinished session from [timestamp]. Restore?"
+- Clear old data after 7 days (configurable)
+
+**Data Structure:**
+```typescript
+interface SavedSession {
+  sessionId: string;
+  createdAt: string;
+  lastModified: string;
+  step: number; // 1-5
+  audioMetadata: AudioMetadata;
+  voiceSamples: VoiceSample[];
+  verificationResult?: VerificationResult[];
+  transcript?: TranscriptSegment[];
+  integrityLog: LogEntry[];
+}
+```
+
+### 4. ENVIRONMENT VALIDATION
+**Pre-flight Checks:**
+```javascript
+const requirements = {
+  webCrypto: typeof crypto !== 'undefined' && crypto.subtle,
+  webAssembly: typeof WebAssembly !== 'undefined',
+  indexedDB: typeof indexedDB !== 'undefined',
+  audioContext: typeof AudioContext !== 'undefined',
+  ramEstimate: navigator.deviceMemory >= 4, // Warning if <4GB
+  https: location.protocol === 'https:' || location.hostname === 'localhost'
+};
+```
+
+**Warnings to Display:**
+- ⚠️ "Less than 4GB RAM detected: Using reduced model quality"
+- ⚠️ "HTTP connection: Some browsers limit features without HTTPS"
+- ⚠️ "WebGPU not available: Processing will be slower (CPU only)"
+- ❌ "Web Crypto API missing: Cannot guarantee integrity (abort)"
+
+### 5. USER INTERFACE SPECIFICATIONS
+**Layout:**
+- Responsive design (mobile-first, desktop-optimized)
+- Sidebar navigation with 5-step progress indicator:
+  * 🔒 Locked (future steps)
+  * 🔓 Open (current step)
+  * ✅ Done (completed steps)
+  * 🔄 Current (active step)
+- Main content area with step-specific components
+- Bottom status bar: progress, resource usage, quick actions
+
+**Components:**
+- Toast notifications (4 types):
+  * ℹ️ Info: General updates
+  * ✅ Success: Completed actions
+  * ⚠️ Warning: Non-blocking issues
+  * ❌ Error: Critical failures requiring action
+- Modal dialogs for confirmations and glossary
+- Collapsible panels for advanced settings
+- Dark/Light mode toggle (persist preference)
+
+**Accessibility:**
+- WCAG 2.1 AA compliance
+- Keyboard navigation support
+- Screen reader announcements for progress updates
+- High contrast mode option
+
+## TECHNICAL STACK REQUIREMENTS
+
+### Core Framework
+- **React 18+** with TypeScript (strict mode enabled)
+- **Vite** for build tooling and HMR
+- **TailwindCSS** for utility-first styling
+- **Framer Motion** for smooth animations and transitions
+- **Lucide React** for consistent iconography
+
+### Audio Processing Libraries
+- **ffmpeg.wasm**: Format validation, resampling, codec detection
+- **Whisper.cpp (WASM build)**: Primary transcription engine
+- **Silero VAD (ONNX/WASM)**: Voice activity detection
+- **pyannote-audio (ONNX conversion)**: Speaker embedding extraction
+- **Web Audio API**: Waveform visualization, level monitoring
+
+### Cryptography & Storage
+- **Web Crypto API**: SHA-256 hashing, UUID generation
+- **IndexedDB** (via idb library): Large data persistence
+- **localStorage**: Settings and lightweight state
+
+### Quality Assurance Tools
+- **eslint-plugin-react**: Code quality enforcement
+- **vitest**: Unit testing framework
+- **playwright**: E2E testing with audio fixtures
+- **Lighthouse CI**: Performance and accessibility auditing
+
+## NON-FUNCTIONAL REQUIREMENTS
+
+### Performance Targets
+- Cold start: <3 seconds on mid-range devices
+- Transcription speed: ≥0.5x real-time on 8GB RAM systems
+- Memory footprint: <2GB peak usage for 30-minute audio
+- First interaction: <100ms latency
+
+### Security Guarantees
+- Zero network requests after initial load (verify via CSP)
+- No third-party analytics or tracking
+- All data encrypted at rest (IndexedDB encryption optional)
+- Content Security Policy: `default-src 'self'; worker-src 'self' blob:`
+
+### Reproducibility Standards
+- Deterministic processing: same input → same output
+- Model version pinning: embed version hashes in reports
+- Seed-based randomness for clustering (store seed in log)
+- Timestamp normalization: all times in UTC
+
+### User Experience Principles
+- Plain language: avoid jargon, explain when necessary
+- Progressive disclosure: show advanced options only when needed
+- Forgiving interface: undo actions, confirm destructive operations
+- Continuous feedback: never leave user wondering "what's happening?"
+
+## QUALITY METRICS & TESTING
+
+### Accuracy Benchmarks
+- **WER (Word Error Rate):** Target <25% on clean audio, <40% on noisy
+- **DER (Diarization Error Rate):** Target <20% with good samples
+- **Confidence Calibration:** 80% confidence should mean ~80% accuracy
+
+### Test Scenarios
+1. **Clean Studio Recording:** Professional mic, quiet room
+2. **Conference Call:** Multiple speakers, slight echo
+3. **Noisy Environment:** Background traffic, café ambience
+4. **Overlapping Speech:** Intentional crosstalk simulation
+5. **Low-Quality Input:** Phone recording, compression artifacts
+6. **Accent Diversity:** Non-native speakers, regional accents
+7. **Technical Vocabulary:** Domain-specific terminology
+8. **Long-form Content:** 25-30 minute continuous speech
+
+### Regression Testing
+- Maintain test suite with ground-truth transcriptions
+- Automated WER/DER calculation on each PR
+- Performance budgets: fail build if >10% slowdown
+- Cross-browser testing: Chrome, Firefox, Safari, Edge
+
+## DOCUMENTATION DELIVERABLES
+
+### README.md (Quick Start)
+```markdown
+# AltaVoz - Local Audio Transcription
+
+## 5-Minute Setup
+1. Clone repository
+2. `npm install`
+3. `npm run dev`
+4. Open http://localhost:5173
+
+## System Requirements
+- Modern browser (Chrome 120+, Firefox 115+, Safari 17+)
+- 8GB RAM recommended (4GB minimum)
+- No internet required after setup
+
+## Quick Start Guide
+[Link to video tutorial]
+[Link to interactive demo]
+```
+
+### MANUAL_USUARIO.md (Comprehensive Guide)
+- Step-by-step walkthrough with screenshots
+- FAQ section addressing common issues
+- Troubleshooting guide (error codes + solutions)
+- Best practices for recording quality audio
+- Glossary of all technical terms
+- Privacy & security explanation
+
+### STARTUP SCRIPTS
+**Windows (start.bat):**
+```batch
+@echo off
+echo Checking Node.js installation...
+where node >nul 2>nul || (echo Node.js not found! && exit /b 1)
+echo Installing dependencies...
+call npm install --prefer-offline
+echo Starting development server...
+call npm run dev
+pause
+```
+
+**Linux/macOS (start.sh):**
+```bash
+#!/bin/bash
+echo "🔍 Checking Node.js installation..."
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js not found! Please install from nodejs.org"
+    exit 1
+fi
+echo "📦 Installing dependencies..."
+npm install --prefer-offline
+echo "🚀 Starting development server..."
+npm run dev
+```
+
+### ERROR MESSAGE GUIDELINES
+**Bad:** "Error 500: WebAssembly instantiation failed"
+**Good:** "⚠️ Couldn't start the transcription engine. This usually happens when your browser doesn't support a required feature. Try updating Chrome/Firefox to the latest version, or restart your browser."
+
+**Structure:**
+1. Emoji indicator (ℹ️✅⚠️❌)
+2. Plain language description
+3. Likely cause
+4. Actionable solution
+5. Technical details (collapsible)
+
+## TARGET USE CASES
+
+### Primary Scenarios
+- **Journalistic Interviews:** Preserve exact quotes with speaker attribution
+- **Legal Depositions:** Create court-admissible transcripts with chain of custody
+- **Academic Research:** Analyze focus groups and qualitative interviews
+- **Corporate Meetings:** Document decisions and action items accurately
+- **Medical Consultations:** Record patient interactions (HIPAA-compliant by design)
+- **Podcast Production:** Generate show notes and searchable archives
+
+### Edge Cases to Handle Gracefully
+- Single speaker (no diarization needed)
+- More than 6 speakers (suggest manual labeling)
+- Non-speech audio (music, ambient sound)
+- Mixed languages (code-switching detection)
+- Extremely fast/slow speech rates
+
+## EXPLICIT CONSTRAINTS (NON-NEGOTIABLE)
+
+❌ **NO** data leaves the user's device
+❌ **NO** external API calls (paid or free)
+❌ **NO** GPU requirement (CPU-only fallback mandatory)
+❌ **NO** cloud storage or synchronization
+❌ **NO** user accounts or authentication
+❌ **NO** telemetry or analytics
+❌ **NO** third-party cookies or trackers
+
+## SUCCESS CRITERIA
+
+The application is considered successful when:
+1. A non-technical user can complete full workflow in <10 minutes
+2. Transcripts achieve ≥75% accuracy on standard test set
+3. Same input produces identical output across 10 consecutive runs
+4. Application functions fully in airplane mode after initial load
+5. Integrity log passes cryptographic verification
+6. Lighthouse score ≥90 on Performance, Accessibility, Best Practices
+7. Zero console errors during normal operation
+8. Recovery from browser crash preserves ≥95% of work
+
+---
+
+**APPENDIX A: MODEL VERSIONS (PIN THESE)**
+- whisper.cpp: v1.6.0 (commit hash: abc123...)
+- silero-vad: v4.0 (ONNX opset 15)
+- pyannote-speaker-diarization: v3.1.0 (converted to ONNX)
+- ffmpeg.wasm: v0.12.0
+
+**APPENDIX B: BROWSER COMPATIBILITY MATRIX**
+| Feature | Chrome 120+ | Firefox 115+ | Safari 17+ | Edge 120+ |
+|---------|-------------|--------------|------------|-----------|
+| WebAssembly | ✅ | ✅ | ✅ | ✅ |
+| Web Crypto | ✅ | ✅ | ✅ | ✅ |
+| IndexedDB | ✅ | ✅ | ✅ | ✅ |
+| Web Audio | ✅ | ✅ | ✅ | ✅ |
+| WebGPU | ✅ | ❌ | ✅ | ✅ |
+| Offscreen Canvas | ✅ | ✅ | ❌ | ✅ |
+
+**APPENDIX C: PERFORMANCE BUDGETS**
+- Initial bundle: <500KB (gzipped)
+- Lazy-loaded models: <50MB total
+- First Contentful Paint: <1.5s
+- Time to Interactive: <3.0s
+- Memory usage (idle): <100MB
+- Memory usage (processing): <2GB
+
+---
+
+*This specification prioritizes accuracy, privacy, and reproducibility above all else. Any optimization that compromises these three principles must be rejected.*
