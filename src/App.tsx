@@ -25,6 +25,25 @@ import { IcBook, IcCpu, IcHistory, IcLogo, IcOffline } from "./components/icons"
 const MAX_FILES = 2;
 const MAX_SEC = 30 * 60;
 
+/** Debounce para evitar writes excessivos no localStorage */
+function createDebouncedSave<T>(saveFn: (data: T) => void, delayMs = 500) {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let pendingData: T | null = null;
+  
+  return (data: T) => {
+    pendingData = data;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      if (pendingData) {
+        saveFn(pendingData);
+        pendingData = null;
+      }
+    }, delayMs);
+  };
+}
+
 const openManual = () => {
   window.open("manual_altavoz.html", "_blank");
 };
@@ -52,13 +71,29 @@ function AppShell() {
     setLogEntries((prev) => [...prev, { id: uid(), at: Date.now(), kind, title, detail }]);
   }, []);
 
-  useEffect(() => saveLog(logEntries), [logEntries]);
-  useEffect(() => saveResults(results), [results]);
+  /* Debounced saves para localStorage */
+  const debouncedSaveLog = useMemo(() => createDebouncedSave(saveLog), []);
+  const debouncedSaveResults = useMemo(() => createDebouncedSave(saveResults), []);
+
+  useEffect(() => debouncedSaveLog(logEntries), [logEntries, debouncedSaveLog]);
+  useEffect(() => debouncedSaveResults(results), [results, debouncedSaveResults]);
 
   /* boot: verificação de requisitos em linguagem simples */
   useEffect(() => {
     if (bootRef.current) return;
     bootRef.current = true;
+    
+    // Verificar Web Crypto e alertar se indisponível
+    const hasWebCrypto = globalThis.crypto?.subtle != null;
+    if (!hasWebCrypto) {
+      addLog("alert", "Web Crypto API indisponível", "Hash SHA-256 usando fallback não criptográfico — execute em ambiente HTTPS para segurança máxima");
+      toast.push(
+        "warn",
+        "Ambiente não seguro detectado",
+        "Seu navegador está em modo HTTP. Os hashes usarão um algoritmo alternativo não criptográfico. Use HTTPS para garantir integridade completa."
+      );
+    }
+    
     addLog("system", "Sistema iniciado", "AtaVoz v1.0 · uso pessoal · 100% local");
     const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
     if (mem && mem < 8) {
@@ -184,6 +219,18 @@ function AppShell() {
     if (f) addLog("import", `Áudio removido pelo usuário: ${f.name}`, "o arquivo original não foi tocado");
   };
 
+  /* Cleanup de URLs ao desmontar */
+  useEffect(() => {
+    return () => {
+      filesRef.current.forEach((f) => {
+        if (f.blobUrl) URL.revokeObjectURL(f.blobUrl);
+      });
+      speakersRef.current.forEach((s) => {
+        if (s.blobUrl) URL.revokeObjectURL(s.blobUrl);
+      });
+    };
+  }, []);
+
   /* ------------------------------- amostras ----------------------------- */
 
   const addSpeaker = (sp: SpeakerRec): boolean => {
@@ -204,8 +251,11 @@ function AppShell() {
 
   /* ----------------------------- verificação ---------------------------- */
 
-  const readyFiles = files.filter(
-    (f) => f.sha256 != null && f.durationSec != null && !f.analyzeError && !f.tooLong
+  const readyFiles = useMemo(() => 
+    files.filter(
+      (f) => f.sha256 != null && f.durationSec != null && !f.analyzeError && !f.tooLong
+    ),
+    [files]
   );
 
   const ensureVerifications = useCallback(() => {

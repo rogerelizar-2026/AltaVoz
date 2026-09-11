@@ -7,9 +7,28 @@ export function uid(): string {
   return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+/** Sleep utilitário com suporte a abort, consolidado para uso em todo o código */
+export async function sleepAbort(ms: number, isAborted: () => boolean): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const start = performance.now();
+    const iv = window.setInterval(() => {
+      if (isAborted()) {
+        window.clearInterval(iv);
+        reject(new Error("aborted"));
+      } else if (performance.now() - start >= ms) {
+        window.clearInterval(iv);
+        resolve();
+      }
+    }, 90);
+  });
+}
+
 /** 00:04:07 — sempre hh:mm:ss, como exigido pelo relatório. */
 export function fmtHMS(sec: number): string {
-  const s = Math.max(0, Math.floor(sec));
+  if (!isFinite(sec) || sec < 0) {
+    throw new Error("fmtHMS: duração inválida");
+  }
+  const s = Math.floor(sec);
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const r = s % 60;
@@ -18,7 +37,10 @@ export function fmtHMS(sec: number): string {
 
 /** 04:07 */
 export function fmtMS(sec: number): string {
-  const s = Math.max(0, Math.floor(sec));
+  if (!isFinite(sec) || sec < 0) {
+    throw new Error("fmtMS: duração inválida");
+  }
+  const s = Math.floor(sec);
   const m = Math.floor(s / 60);
   const r = s % 60;
   return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
@@ -26,6 +48,9 @@ export function fmtMS(sec: number): string {
 
 /** "28 min 10 s" para cartões e estimativas. */
 export function fmtFriendly(sec: number): string {
+  if (!isFinite(sec) || sec < 0) {
+    throw new Error("fmtFriendly: duração inválida");
+  }
   const s = Math.round(sec);
   if (s < 60) return `${s} s`;
   const m = Math.floor(s / 60);

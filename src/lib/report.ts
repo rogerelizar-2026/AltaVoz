@@ -11,6 +11,7 @@ function esc(s: string): string {
 }
 
 function mdPipe(s: string): string {
+  // Escapar caracteres especiais Markdown para evitar quebra de formato na tabela
   return s.replace(/\|/g, "/");
 }
 
