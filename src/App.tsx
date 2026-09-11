@@ -413,14 +413,7 @@ function AppShell() {
 
   return (
     <div className="min-h-full">
-      {/* Overlay de bloqueio quando não autenticado */}
-      {!isAuthenticated && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink-950/95 backdrop-blur-sm">
-          <div className="text-center text-mist-400">
-            <p className="text-sm">Aguardando autenticação...</p>
-          </div>
-        </div>
-      )}
+      {/* Overlay de bloqueio quando não autenticado - removido pois o PasswordModal já faz este papel */}
       
       <div className="bg-scene" />
       <div className="bg-grid" />
