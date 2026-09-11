@@ -10,16 +10,33 @@ export function uid(): string {
 /** Sleep utilitário com suporte a abort, consolidado para uso em todo o código */
 export async function sleepAbort(ms: number, isAborted: () => boolean): Promise<void> {
   return new Promise((resolve, reject) => {
-    const start = performance.now();
-    const iv = window.setInterval(() => {
+    // Verificação inicial imediata
+    if (isAborted()) {
+      reject(new Error("aborted"));
+      return;
+    }
+    
+    const end = performance.now() + ms;
+    const checkInterval = Math.min(80, Math.max(16, ms / 12));
+    
+    const timerId = window.setTimeout(function check(): void {
       if (isAborted()) {
-        window.clearInterval(iv);
         reject(new Error("aborted"));
-      } else if (performance.now() - start >= ms) {
-        window.clearInterval(iv);
-        resolve();
+        return;
       }
-    }, 90);
+      
+      const remaining = end - performance.now();
+      if (remaining <= 0) {
+        resolve();
+        return;
+      }
+      
+      // Agendar próxima verificação
+      window.setTimeout(check, Math.min(checkInterval, remaining));
+    }, checkInterval);
+    
+    // Cleanup se desmontar
+    return () => window.clearTimeout(timerId);
   });
 }
 
