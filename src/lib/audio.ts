@@ -29,6 +29,11 @@ function toHex(buf: ArrayBuffer): string {
 }
 
 /** Hash de texto (usado também para o hash do próprio relatório). */
+/** Ambiente seguro para Web Crypto — retorna false se não disponível (HTTPS necessário) */
+export function isWebCryptoAvailable(): boolean {
+  return !!(globalThis.crypto?.subtle);
+}
+
 export async function sha256Hex(data: ArrayBuffer | string): Promise<string> {
   let buffer: ArrayBuffer;
   if (typeof data === "string") {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { AudioFileRec, LogKind, SpeakerRec, TranscriptResult, VerificationRec } from "../../lib/types";
 import { MEMORY_RELEASE_MS, ProcessingAborted, runProcessing, STAGES, totalMsFor } from "../../lib/engine";
-import { cx, fmtFriendly, fmtHMS, fmtMS } from "../../lib/utils";
+import { cx, fmtFriendly, fmtHMS, fmtMS, sleepAbort } from "../../lib/utils";
 import { Btn, Callout, Chip, ProgressBar, SectionHead } from "../ui";
 import { Term } from "../Term";
 import { useToast } from "../Toasts";
@@ -18,20 +18,7 @@ import {
 
 type RunState = "idle" | "running" | "memfree" | "done" | "cancelled";
 
-function sleepAbort(ms: number, isAborted: () => boolean): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const start = performance.now();
-    const iv = window.setInterval(() => {
-      if (isAborted()) {
-        window.clearInterval(iv);
-        reject(new ProcessingAborted());
-      } else if (performance.now() - start >= ms) {
-        window.clearInterval(iv);
-        resolve();
-      }
-    }, 90);
-  });
-}
+// sleepAbort importado de utils.ts — função local removida para evitar duplicação
 
 export function StepProcess({
   files,

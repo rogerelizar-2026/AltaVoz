@@ -1,5 +1,5 @@
 import { SENTENCES } from "./corpus";
-import { clamp, mulberry32, seedFrom } from "./utils";
+import { clamp, mulberry32, seedFrom, sleepAbort } from "./utils";
 import type {
   AudioFileRec,
   SpeakerRec,
@@ -71,19 +71,12 @@ export interface ProgressInfo {
   filePosSec: number;
 }
 
-function tick(ms: number, isAborted: () => boolean): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const start = performance.now();
-    const iv = window.setInterval(() => {
-      if (isAborted()) {
-        window.clearInterval(iv);
-        reject(new ProcessingAborted());
-      } else if (performance.now() - start >= ms) {
-        window.clearInterval(iv);
-        resolve();
-      }
-    }, 90);
-  });
+async function tick(ms: number, isAborted: () => boolean): Promise<void> {
+  try {
+    await sleepAbort(ms, isAborted);
+  } catch {
+    throw new ProcessingAborted();
+  }
 }
 
 /**
