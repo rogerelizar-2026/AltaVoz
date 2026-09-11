@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import type {
   AudioFileRec,
   LogEntry,
@@ -21,6 +21,7 @@ import { StepVerify } from "./components/steps/StepVerify";
 import { StepProcess } from "./components/steps/StepProcess";
 import { StepReport } from "./components/steps/StepReport";
 import { IcBook, IcCpu, IcHistory, IcLogo, IcOffline } from "./components/icons";
+import { PasswordModal, ExitConfirmModal } from "./components/PasswordModal";
 
 const MAX_FILES = 2;
 const MAX_SEC = 30 * 60;
@@ -58,6 +59,11 @@ function AppShell() {
   const [logEntries, setLogEntries] = useState<LogEntry[]>(() => loadLog());
   const [logOpen, setLogOpen] = useState(false);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
+  
+  // Estados para autenticação
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(true);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const filesRef = useRef(files);
   filesRef.current = files;
@@ -77,6 +83,33 @@ function AppShell() {
 
   useEffect(() => debouncedSaveLog(logEntries), [logEntries, debouncedSaveLog]);
   useEffect(() => debouncedSaveResults(results), [results, debouncedSaveResults]);
+
+  // Handler para autenticação bem-sucedida
+  const handleAuthenticated = useCallback(() => {
+    setIsAuthenticated(true);
+    setShowPasswordModal(false);
+    addLog("system", "Usuário autenticado", "Acesso concedido ao sistema");
+  }, [addLog]);
+
+  // Handler para confirmar saída do sistema
+  const handleExitConfirm = useCallback(() => {
+    // Limpa dados da sessão e recarrega a página
+    localStorage.removeItem("atavoz_log");
+    localStorage.removeItem("atavoz_results");
+    window.location.reload();
+  }, []);
+
+  // Handler para abrir modal de confirmação de saída
+  const handleExitRequest = useCallback(() => {
+    setShowPasswordModal(false);
+    setShowExitConfirm(true);
+  }, []);
+
+  // Handler para cancelar saída
+  const handleExitCancel = useCallback(() => {
+    setShowExitConfirm(false);
+    setShowPasswordModal(true);
+  }, []);
 
   /* boot: verificação de requisitos em linguagem simples */
   useEffect(() => {
@@ -380,6 +413,15 @@ function AppShell() {
 
   return (
     <div className="min-h-full">
+      {/* Overlay de bloqueio quando não autenticado */}
+      {!isAuthenticated && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink-950/95 backdrop-blur-sm">
+          <div className="text-center text-mist-400">
+            <p className="text-sm">Aguardando autenticação...</p>
+          </div>
+        </div>
+      )}
+      
       <div className="bg-scene" />
       <div className="bg-grid" />
       <div className="bg-trace" />
@@ -558,6 +600,18 @@ function AppShell() {
 
       <LogDrawer open={logOpen} entries={logEntries} onClose={() => setLogOpen(false)} onExport={exportLog} />
       <GlossaryModal open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      
+      {/* Modais de autenticação */}
+      <PasswordModal 
+        open={showPasswordModal} 
+        onAuthenticated={handleAuthenticated}
+        onExit={handleExitRequest}
+      />
+      <ExitConfirmModal 
+        open={showExitConfirm}
+        onConfirm={handleExitConfirm}
+        onCancel={handleExitCancel}
+      />
     </div>
   );
 }

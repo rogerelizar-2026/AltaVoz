@@ -141,6 +141,13 @@ export const IcLock = (p: P) => (
     <path d="M8 11V8a4 4 0 0 1 8 0v3" />
   </svg>
 );
+export const IcLogout = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <path d="M16 17l5-5-5-5" />
+    <path d="M21 12H9" />
+  </svg>
+);
 export const IcSpinner = (p: P) => (
   <svg {...base(p)} className={`anim-spin ${p.className ?? ""}`}>
     <path d="M12 3a9 9 0 1 1-9 9" />
