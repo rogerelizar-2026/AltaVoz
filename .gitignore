@@ -8,7 +8,10 @@ build/
 # Dependencies
 node_modules/
 
-# Vite/Vitest cache
+# Build artifacts
+dist/
+
+# Temporary/Vite files
 node_modules/.vite/
 
 # Logs and temp files
