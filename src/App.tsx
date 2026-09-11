@@ -91,7 +91,7 @@ function AppShell() {
     addLog("system", "Usuário autenticado", "Acesso concedido ao sistema");
   }, [addLog]);
 
-  // Handler para confirmar saída do sistema
+  // Handler para confirmar saída do sistema (não é mais usado, mantido para compatibilidade)
   const handleExitConfirm = useCallback(() => {
     // Limpa dados da sessão e recarrega a página
     localStorage.removeItem("atavoz_log");
@@ -99,13 +99,13 @@ function AppShell() {
     window.location.reload();
   }, []);
 
-  // Handler para abrir modal de confirmação de saída
+  // Handler para solicitar saída - agora trata diretamente no PasswordModal
   const handleExitRequest = useCallback(() => {
-    setShowPasswordModal(false);
-    setShowExitConfirm(true);
+    // A lógica de saída agora está dentro do PasswordModal
+    // Este handler não é mais necessário, mas mantemos para compatibilidade
   }, []);
 
-  // Handler para cancelar saída
+  // Handler para cancelar saída (não é mais usado)
   const handleExitCancel = useCallback(() => {
     setShowExitConfirm(false);
     setShowPasswordModal(true);
