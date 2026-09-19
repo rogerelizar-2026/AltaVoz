@@ -94,8 +94,8 @@ function AppShell() {
   // Handler para confirmar saída do sistema
   const handleExitConfirm = useCallback(() => {
     // Limpa dados da sessão e recarrega a página
-    localStorage.removeItem("altavoz_log");
-    localStorage.removeItem("altavoz_results");
+    localStorage.removeItem("altavoz.log.v1");
+    localStorage.removeItem("altavoz.results.v1");
     window.location.reload();
   }, []);
 
