@@ -21,7 +21,7 @@ import { StepVerify } from "./components/steps/StepVerify";
 import { StepProcess } from "./components/steps/StepProcess";
 import { StepReport } from "./components/steps/StepReport";
 import { IcBook, IcCpu, IcHistory, IcLogo, IcOffline } from "./components/icons";
-import { PasswordModal, ExitConfirmModal } from "./components/PasswordModal";
+import { PasswordModal } from "./components/PasswordModal";
 
 const MAX_FILES = 2;
 const MAX_SEC = 30 * 60;
@@ -63,7 +63,6 @@ function AppShell() {
   // Estados para autenticação
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(true);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const filesRef = useRef(files);
   filesRef.current = files;
@@ -91,25 +90,7 @@ function AppShell() {
     addLog("system", "Usuário autenticado", "Acesso concedido ao sistema");
   }, [addLog]);
 
-  // Handler para confirmar saída do sistema (não é mais usado, mantido para compatibilidade)
-  const handleExitConfirm = useCallback(() => {
-    // Limpa dados da sessão e recarrega a página
-    localStorage.removeItem("atavoz.log.v1");
-    localStorage.removeItem("atavoz.results.v1");
-    window.location.reload();
-  }, []);
 
-  // Handler para solicitar saída - agora trata diretamente no PasswordModal
-  const handleExitRequest = useCallback(() => {
-    // A lógica de saída agora está dentro do PasswordModal
-    // Este handler não é mais necessário, mas mantemos para compatibilidade
-  }, []);
-
-  // Handler para cancelar saída (não é mais usado)
-  const handleExitCancel = useCallback(() => {
-    setShowExitConfirm(false);
-    setShowPasswordModal(true);
-  }, []);
 
   /* boot: verificação de requisitos em linguagem simples */
   useEffect(() => {
@@ -594,16 +575,10 @@ function AppShell() {
       <LogDrawer open={logOpen} entries={logEntries} onClose={() => setLogOpen(false)} onExport={exportLog} />
       <GlossaryModal open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
       
-      {/* Modais de autenticação */}
+      {/* Modal de autenticação */}
       <PasswordModal 
         open={showPasswordModal} 
         onAuthenticated={handleAuthenticated}
-        onExit={handleExitRequest}
-      />
-      <ExitConfirmModal 
-        open={showExitConfirm}
-        onConfirm={handleExitConfirm}
-        onCancel={handleExitCancel}
       />
     </div>
   );
