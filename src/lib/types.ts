@@ -16,13 +16,19 @@ export interface AudioFileRec {
 export interface SpeakerRec {
   id: string;
   name: string;
-  source: "gravada" | "importada";
-  durationSec: number;
-  rms: number;
-  peaks: number[];
-  blobUrl: string | null;
-  quality: "boa" | "volume-baixo";
+  source: "extraida";
+  fileId: string;
+  segments: SpeakerSegment[];
   createdAt: number;
+}
+
+export interface SpeakerSegment {
+  startSec: number;
+  endSec: number;
+  blobUrl: string | null;
+  peaks: number[];
+  rms: number;
+  durationSec: number;
 }
 
 export interface VerifyTurn {

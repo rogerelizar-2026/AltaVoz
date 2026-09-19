@@ -517,6 +517,7 @@ function AppShell() {
             {step === 1 && (
               <StepSamples
                 speakers={speakers}
+                files={readyFiles}
                 onAdd={addSpeaker}
                 onRemove={removeSpeaker}
                 onNext={() => goToStep(2)}
