@@ -162,11 +162,11 @@ function AppShell() {
         });
         continue;
       }
-      if (!/\.(mp3|m4a)$/i.test(file.name)) {
+      if (!/\.(mp3|m4a|wav|flac|ogg|webm)$/i.test(file.name)) {
         rejected.push({
           name: file.name,
           reason:
-            "Só aceitamos gravações nos formatos MP3 ou M4A. Se o áudio está em outro formato, converta para MP3 e tente de novo.",
+            "Só aceitamos gravações nos formatos MP3, M4A, WAV, FLAC, OGG ou WEBM. Se o áudio está em outro formato, converta para um desses formatos e tente de novo.",
         });
         continue;
       }
