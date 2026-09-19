@@ -1,4 +1,4 @@
-# Manual do Usuario - AtaVoz
+# Manual do Usuario - AltaVoz
 
 ## Transcricao e Identificacao de Quem Falou
 
@@ -8,7 +8,7 @@
 
 ## Antes de Comecar: Instalacao do Node.js
 
-O **AtaVoz** precisa do **Node.js** instalado no seu computador para funcionar. O Node.js e uma plataforma gratuita que permite executar aplicacoes modernas no seu PC.
+O **AltaVoz** precisa do **Node.js** instalado no seu computador para funcionar. O Node.js e uma plataforma gratuita que permite executar aplicacoes modernas no seu PC.
 
 ### Passo 1: Baixar o Node.js
 
@@ -45,16 +45,16 @@ O **AtaVoz** precisa do **Node.js** instalado no seu computador para funcionar. 
 3. Digite o comando: `node --version`
 4. Se aparecer um numero (ex: `v20.11.0`), esta instalado corretamente!
 
-### Passo 4: Iniciar o AtaVoz
+### Passo 4: Iniciar o AltaVoz
 
 **No Windows:**
-1. V ate a pasta onde esta o AtaVoz
+1. V ate a pasta onde esta o AltaVoz
 2. Dê dois cliques no arquivo `iniciar.bat`
 3. O sistema instalara as dependencias automaticamente (primeira vez apenas)
-4. O navegador abrira com o AtaVoz
+4. O navegador abrira com o AltaVoz
 
 **No Mac/Linux:**
-1. Abra o Terminal na pasta do AtaVoz
+1. Abra o Terminal na pasta do AltaVoz
 2. Digite: `./iniciar.sh`
 3. Aguarde a abertura automatica no navegador
 
@@ -69,9 +69,9 @@ O **AtaVoz** precisa do **Node.js** instalado no seu computador para funcionar. 
 
 ---
 
-## Bem-vindo ao AtaVoz!
+## Bem-vindo ao AltaVoz!
 
-O **AtaVoz** e um programa que transforma gravacoes de audio em texto escrito, mostrando **quem falou o que** e **quando**. Tudo acontece no seu computador - nada e enviado para a internet.
+O **AltaVoz** e um programa que transforma gravacoes de audio em texto escrito, mostrando **quem falou o que** e **quando**. Tudo acontece no seu computador - nada e enviado para a internet.
 
 ### Para que serve?
 
@@ -94,7 +94,7 @@ O **AtaVoz** e um programa que transforma gravacoes de audio em texto escrito, m
 
 ## Mapa dos 5 Passos
 
-O AtaVoz funciona em 5 etapas. Voce so avanca quando completa a anterior:
+O AltaVoz funciona em 5 etapas. Voce so avanca quando completa a anterior:
 
 ```
 [1] -> [2] -> [3] -> [4] -> [5]
@@ -423,7 +423,7 @@ Termos incluidos:
 ## Perguntas Frequentes (FAQ)
 
 ### 1. Meus dados saem do meu computador?
-NAO! Tudo fica no seu computador. O AtaVoz funciona 100% offline, sem enviar nada para internet.
+NAO! Tudo fica no seu computador. O AltaVoz funciona 100% offline, sem enviar nada para internet.
 
 ### 2. Preciso instalar algo?
 NAO! Basta abrir o site no seu navegador (Chrome, Firefox, Edge).
@@ -502,7 +502,7 @@ E o texto escrito de tudo o que foi dito no audio, com o horario (hh:mm:ss) em q
 
 ## Parabens!
 
-Agora voce conhece tudo sobre o **AtaVoz**!
+Agora voce conhece tudo sobre o **AltaVoz**!
 
 Lembre-se:
 - Siga os 5 passos na ordem
@@ -516,4 +516,4 @@ Boa transcricao!
 
 Manual criado para ser compreendido por adolescentes e idosos, com linguagem simples e exemplos visuais.
 
-AtaVoz v1.0 - Software livre para uso pessoal.
+AltaVoz v1.0 - Software livre para uso pessoal.
