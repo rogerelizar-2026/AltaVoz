@@ -249,7 +249,7 @@ export function generateTranscript(
     segments,
     speakerStats: stats,
     engine: {
-      transcriber: "faster-whisper 1.2 · modelo medium · quantização int8",
+      transcriber: "demonstracao (sem modelo real)",
       diarizer: "pyannote-audio 3.3 · separação de vozes + verificação por amostra (CPU)",
       language: "Português (pt)",
       compute: "Somente CPU · 4 threads · sem uso de placa de vídeo",
