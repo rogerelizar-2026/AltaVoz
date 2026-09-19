@@ -94,8 +94,8 @@ function AppShell() {
   // Handler para confirmar saída do sistema (não é mais usado, mantido para compatibilidade)
   const handleExitConfirm = useCallback(() => {
     // Limpa dados da sessão e recarrega a página
-    localStorage.removeItem("atavoz_log");
-    localStorage.removeItem("atavoz_results");
+    localStorage.removeItem("atavoz.log.v1");
+    localStorage.removeItem("atavoz.results.v1");
     window.location.reload();
   }, []);
 
