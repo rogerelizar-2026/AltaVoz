@@ -1,5 +1,8 @@
 {
-  "name": "sandbox-workspace",
+  "name": "altavoz-forense",
+  "version": "1.0.0",
+  "description": "Altavoz Forense Application",
+  "author": "",
   "private": true,
   "type": "module",
   "scripts": {
