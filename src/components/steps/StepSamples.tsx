@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { SpeakerRec } from "../../lib/types";
-import { analyzeBlob, getAudioContext, pickMime } from "../../lib/audio";
-import { cx, fmtMS, uid } from "../../lib/utils";
+import type { SpeakerRec, SpeakerSegment, AudioFileRec } from "../../lib/types";
+import { analyzeBlob, getAudioContext, pickMime, extractSegment } from "../../lib/audio";
+import { cx, uid } from "../../lib/utils";
 import { Btn, Callout, Chip, SectionHead } from "../ui";
 import { Term } from "../Term";
 import { PlayButton, usePlayback, Waveform } from "../Waveform";
@@ -11,61 +11,42 @@ import {
   IcArrowR,
   IcCheck,
   IcCheckCircle,
-  IcMic,
   IcSpinner,
-  IcStop,
   IcTrash,
-  IcUpload,
   IcUser,
 } from "../icons";
 
-const MIN_SEC = 10;
-const MAX_SEC = 30;
-
-type RecState = "idle" | "rec" | "processing";
+const NUM_SEGMENTS = 5;
 
 export function StepSamples({
   speakers,
+  files,
   onAdd,
   onRemove,
   onNext,
   canNext,
 }: {
   speakers: SpeakerRec[];
+  files: AudioFileRec[];
   onAdd: (sp: SpeakerRec) => boolean;
   onRemove: (id: string) => void;
   onNext: () => void;
   canNext: boolean;
 }) {
   const toast = useToast();
-  const [mode, setMode] = useState<"gravar" | "importar">("gravar");
+  const [selectedFileId, setSelectedFileId] = useState<string>(files[0]?.id ?? "");
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
-
-  const [recState, setRecState] = useState<RecState>("idle");
-  const [recTime, setRecTime] = useState(0);
-  const [level, setLevel] = useState(0);
-  const [micError, setMicError] = useState<string | null>(null);
-  const [importMsg, setImportMsg] = useState<string | null>(null);
-
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const rafRef = useRef(0);
-  const timerRef = useRef(0);
-  const startRef = useRef(0);
-  const elapsedRef = useRef(0);
-  const levelsRef = useRef<number[]>([]);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const [segments, setSegments] = useState<SpeakerSegment[]>([]);
+  const [segmentNames, setSegmentNames] = useState<Record<number, string>>({});
 
   useEffect(() => {
-    return () => {
-      window.clearInterval(timerRef.current);
-      cancelAnimationFrame(rafRef.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      // O AudioContext é compartilhado com a análise de arquivos — nunca fechar aqui.
-    };
-  }, []);
+    if (files.length > 0 && !selectedFileId) {
+      setSelectedFileId(files[0].id);
+    }
+  }, [files, selectedFileId]);
 
   const validateName = (): boolean => {
     const n = name.trim();

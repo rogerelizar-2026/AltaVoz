@@ -1,40 +1,4 @@
 ```
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Dependencies
-node_modules/
-
 # Build artifacts
 dist/
-build/
-target/
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
-
-# Temp files
-*.tmp
-
-# Coverage
-.coverage
-coverage/
-htmlcov/
-
-# VCS
-.git/
 ```
