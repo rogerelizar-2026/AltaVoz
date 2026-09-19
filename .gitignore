@@ -1,101 +1,78 @@
 ```gitignore
 # Dependencies
 node_modules/
+.pnpm-store/
+.yarn/
+.yarn-cache/
 
 # Build outputs
 dist/
 build/
-*.js.map
-*.tsbuildinfo
+.out/
+.bundle/
 
-# Environment variables
-.env
-.env.local
-*.env.*
-
-# Logs
-*.log
-
-# Coverage reports
-coverage/
-htmlcov/
-.nyc_output/
-
-# IDE specific
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Python related
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-*.so
-*.egg-info/
-.eggs/
-
-# Temporary files
-*.tmp
-*~
-.DS_Store
-Thumbs.db
-
-# Testing
-.jest/
-.nyc_output/
+env/
+venv/
+.venv/
+.env
+.env.local
+.env.*
+.ENV
+.python-version
+pip-log.txt
+pipenv.lock
 .coverage
-coverage.xml
-*.lcov
-
-# Distribution / packaging
-.Python
-*.so
-.libs/
+.coverage.*
+.cache
+.nox/
 .pytest_cache/
 .mypy_cache/
-tox.ini
-.coveragerc
+.hypothesis/
 
-# Node.js
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Compiled binary files
-*.exe
-*.dll
-*.so
-*.dylib
-*.class
-*.o
-*.a
-*.obj
-*.out
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment specific
+.env
+.env.local
+.env.*
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Temporary files
+*.tmp
+*.temp
 ```
+
+Wait, let me reconsider. The only modified file is `src/components/PasswordModal.tsx` which is a TypeScript React component file. There are no build artifacts, dependency directories, or temporary files in the change list that need to be ignored.
+
+(empty)
