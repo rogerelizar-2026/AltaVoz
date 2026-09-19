@@ -1,61 +1,34 @@
-```
-# Build artifacts
-dist/
-build/
-*.js
-*.css
-
-# Dependencies
-node_modules/
-
-# Build artifacts
-dist/
-
-# Temporary/Vite files
-node_modules/.vite/
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
-.env
-.env.local
-.env.*
-
-# Editors
-.vscode/
-.idea/
-
-# Python
-__pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Compiled
+__pycache__/
 *.o
 *.obj
+*.exe
+*.dll
 *.so
 *.a
-*.dll
-*.exe
 *.out
-
-# Testing
-coverage/
-htmlcov/
-.coverage
-.nyc_output/
+node_modules/
+venv/
+.venv/
 .mypy_cache/
 .pytest_cache/
-.jest_coverage/
-
-# OS
+dist/
+build/
+target/
+.gradle/
+.vscode/
+.idea/
+*.swp
+*.swo
+*.log
+*.tmp
 .DS_Store
 Thumbs.db
-
-# Compressed
+.env
+.env.local
+*.env.*
+coverage/
+htmlcov/
 *.zip
 *.gz
 *.tar
@@ -74,4 +47,7 @@ Thumbs.db
 *.Z
 *.lz
 *.lzo
-```
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
