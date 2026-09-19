@@ -1,34 +1,81 @@
-*.pyc
-__pycache__/
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.a
-*.out
+```gitignore
+# Dependencies
 node_modules/
-venv/
-.venv/
-.mypy_cache/
-.pytest_cache/
+
+# Build outputs
 dist/
 build/
-target/
-.gradle/
+*.js.map
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+*.env.*
+
+# Logs
+*.log
+
+# Coverage reports
+coverage/
+htmlcov/
+.nyc_output/
+
+# IDE specific
 .vscode/
 .idea/
 *.swp
 *.swo
-*.log
+
+# Python related
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
+.eggs/
+
+# Temporary files
 *.tmp
+*~
 .DS_Store
 Thumbs.db
-.env
-.env.local
-*.env.*
-coverage/
-htmlcov/
+
+# Testing
+.jest/
+.nyc_output/
+.coverage
+coverage.xml
+*.lcov
+
+# Distribution / packaging
+.Python
+*.so
+.libs/
+.pytest_cache/
+.mypy_cache/
+tox.ini
+.coveragerc
+
+# Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Compiled binary files
+*.exe
+*.dll
+*.so
+*.dylib
+*.class
+*.o
+*.a
+*.obj
+*.out
+
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -51,3 +98,4 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+```

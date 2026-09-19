@@ -326,7 +326,7 @@ export function StepReport({
                 variant="ghost"
                 className="mt-1"
                 onClick={() => {
-                  downloadText("diario_de_integridade_atavoz.txt", logToText(logEntries), "text/plain");
+                  downloadText("diario_de_integridade_altavoz.txt", logToText(logEntries), "text/plain");
                   log("export", "Diário de integridade exportado (.txt)", `${logEntries.length} eventos`);
                   toast.push("ok", "Diário baixado", "A trilha completa de auditoria foi salva como arquivo de texto.");
                 }}
