@@ -16,6 +16,8 @@ import {
   IcUser,
 } from "../icons";
 
+const MIN_SEC = 5;
+const MAX_SEC = 30;
 const NUM_SEGMENTS = 5;
 
 export function StepSamples({
