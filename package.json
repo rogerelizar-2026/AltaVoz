@@ -1,7 +1,7 @@
 {
-  "name": "altavoz-forense",
+  "name": "altavoz",
   "version": "1.0.0",
-  "description": "Altavoz Forense Application",
+  "description": "AltaVoz - Sistema de Transcrição e Análise de Áudio",
   "author": "",
   "private": true,
   "type": "module",
