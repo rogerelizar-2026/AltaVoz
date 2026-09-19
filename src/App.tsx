@@ -94,8 +94,8 @@ function AppShell() {
   // Handler para confirmar saída do sistema
   const handleExitConfirm = useCallback(() => {
     // Limpa dados da sessão e recarrega a página
-    localStorage.removeItem("atavoz_log");
-    localStorage.removeItem("atavoz_results");
+    localStorage.removeItem("altavoz_log");
+    localStorage.removeItem("altavoz_results");
     window.location.reload();
   }, []);
 
@@ -406,7 +406,7 @@ function AppShell() {
   ];
 
   const exportLog = () => {
-    downloadText("diario_de_integridade_atavoz.txt", logToText(logEntries), "text/plain");
+    downloadText("diario_de_integridade_altavoz.txt", logToText(logEntries), "text/plain");
     addLog("export", "Diário de integridade exportado (.txt)", `${logEntries.length} eventos registrados`);
     toast.push("ok", "Diário baixado", "A trilha completa de auditoria foi salva como arquivo de texto.");
   };

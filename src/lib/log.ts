@@ -1,8 +1,8 @@
 import type { LogEntry, TranscriptResult } from "./types";
 import { fmtDateTime } from "./utils";
 
-const LOG_KEY = "atavoz.log.v1";
-const RESULTS_KEY = "atavoz.results.v1";
+const LOG_KEY = "altavoz.log.v1";
+const RESULTS_KEY = "altavoz.results.v1";
 
 function safeGet(key: string): string | null {
   try {
